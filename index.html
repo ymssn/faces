@@ -1,190 +1,82 @@
-<!DOCTYPE html>
-<html ng-app="">
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>LLL by ymssn</title>
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+    <script src="javascripts/main.js"></script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
 
-<head>
-  <meta charset="utf-8" />
-  <title>Angularjs Google Spreadsheet Data</title>
-  <script data-require="angular.js@1.2.2" src="http://code.angularjs.org/1.2.2/angular.js" data-semver="1.2.2"></script>
-  
-  <script>
-    // We would normally put all this javascript in another file called app.js
-    // We have one Angularjs controller. 
-    function MainCtrl($scope,$http) {
-      //We will keep all the students in this list of lists. 
-      $scope.levels = [[],[],[],[],[]];
+  </head>
+  <body>
 
-      //Load the MITB IS605 spreadsheet loaded as default
-      $scope.spreadsheet = "1xi8qLGPbAZszEBfVlHVjyJuXV8iagqSGBYacH4Dslc8";
-      $scope.get_data = function(spreadsheet){
-        // Using the http class to fetch data. 
-        $http({
-          url: 'https://spreadsheets.google.com/feeds/list/'+spreadsheet+'/od6/public/values?alt=json',
-          method: "GET"
-        })
-        .then(function(response) {
-          // On success, put the response into the $scope.summary variable. 
-          $scope.summary = response;
-          // Here is an easy way to debug to your Chrome console.
-          console.log("summary found");
-          //Reset the levels lists. 
-          $scope.levels = [[],[],[],[],[]];
-          //load the first list with all the students. 
-          
-          for (i = 0; i < $scope.summary.data.feed.entry.length; i++) { 
-              $scope.levels[0].push($scope.summary.data.feed.entry[i]);
-          }
-          $scope.start_game();
-        }, 
-        function(response) { // optional
-          // If there is an error while fetching the data, log to the console. 
-          console.log("spreadsheet not found.");
-        }
-      );
-    }
-  
-    $scope.start_game = function(){
-      //Assume that we are working on level 0 by default. 
-      $scope.gameLevel = 0;
-      //If there are less than 6 on current level, increase the level. 
-      if ($scope.levels[0].length < 6) {
-        $scope.gameLevel = 1;
-        if ($scope.levels[1].length < 6) {
-          $scope.gameLevel = 2;
-          if ($scope.levels[2].length < 6) {
-               $scope.gameLevel = 3;
-          } 
-      	}
-      }
-    
-	    //Get 6 random indexes to fill the options list.
-	    $scope.options = [];
-	    for (i = 0; i < 6; i++) { 
-	      theIndex = Math.floor(Math.random() * $scope.levels[$scope.gameLevel].length);
-	      $scope.options.push(theIndex);
-	    }
-	    //Pick one of the options to ask the users about. 
-	    correctOptionIndex = Math.floor(Math.random() * 6);
-	    $scope.correctOption = $scope.options[correctOptionIndex];
-	    //Reset these variable so that the GUI can be rendered properly. 
-	    $scope.incorrect = false;
-	    $scope.correct = false;
-  	}
-  
-	  $scope.process_correct = function(){
-	      if($scope.incorrect === false){
-	        $scope.levels[$scope.gameLevel+1].push($scope.levels[$scope.gameLevel][$scope.correctOption]);
-	        $scope.levels[$scope.gameLevel].splice($scope.correctOption, 1);
-	      }
-	      else{
-	        console.log("Demoting this option on incorrect guesses.");
-	        if($scope.gameLevel>0){
-	          $scope.levels[0].push($scope.levels[$scope.gameLevel][$scope.correctOption]);
-	          $scope.levels[$scope.gameLevel].splice($scope.correctOption, 1);
-	        }
-	      }
-	    
-	  }
-	  $scope.image_click = function(theOption){
-	    if(theOption==$scope.correctOption){
-	      $scope.process_correct();
-	      $scope.start_game();
-	    }
-	    else{
-	      //set whenever an inccorect selection is seen. 
-	      $scope.incorrect = true;
-	      $scope.correct = false;
-	    }
-	  }
-	  //load default spreadsheet the first time the page and controller are loaded.   
-	  $scope.get_data($scope.spreadsheet);
-	  //This is the image for the silouette person saved as data. This way we don't need to link to an extrnal photo. 
-	  $scope.wrongPerson = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wCEAAkGBwgHBgkIBwgKCgkLDRYPDQwMDRsUFRAWIB0iIiAdHx8kKDQsJCYxJx8fLT0tMTU3Ojo6Iys/RD84QzQ5OjcBCgoKDQwNGg8PGjclHyU3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3N//AABEIAFoAQwMBIgACEQEDEQH/xAAcAAABBAMBAAAAAAAAAAAAAAAAAQIGBwMFCAT/xAA8EAABAwIBBwgHBwUAAAAAAAABAAIDBAURBgcSEyGSsRQxM0FRU4KRMjVCYXFygQgiIzRSstEVNlShwf/EABYBAQEBAAAAAAAAAAAAAAAAAAABAv/EABURAQEAAAAAAAAAAAAAAAAAAAAB/9oADAMBAAIRAxEAPwC6YIo9TH+Gz0B7PuT9TH3bN1FP0MfyjgshKDHqou7Zuo1UPXGzdUJzh5ybbkbo0pidV3GRuk2BjsAwdReeoKg8ps4OUeUFU6WouMsERP3aemeWMaPpzoOsQyAnBoi+GAS6qP8AQzdC4uhuddDLrYa6pjkxx02SuB88VbObjPBU080Ntyqe6eneQxlbh96M9Wl2j3oL41Mfds3UamPu2boTopWSxtkjcHMcAWuBxBHuKegjV1ZGK+UaDOrqHYEIu/rCXw8AhBIKfoY/lHBa7Ku6mx5OXG6Mj1jqWndI1naQNi2MHQx/IOCjec5zW5AX4uIANG8bT19SDlS83asvdxmuFxmMtRM7Se7/AIOwLwpeZIgE+PnwTE+P0kHReYrKaS52aWz1b9OehAMRJ2mI/wAFWoqC+zz/AHFcMP8ADH7wr9QRq7+sJfDwCEXf1hL4eAQgkEHQx/IOCgWfWB0ubmtcwOOqmieQOzTA2+antP0MfyjgvDlHaor3Y662T9HVQujOHVjzHzwQcYkcUi2F9tFbY7jLb7jC6KeJxBDm4aQ7R7itegE+P0kxPj2bezagtbMNT1MuVuvgJbBDTuM+HMQdjR5nH6LolVpmPycmsuTr62tgdHU1zg4NPOIx6PHFWWgjV39YS+HgEIu/rCXw8AhBIKfoY/lHBZDzHDnWKNzWU7HPIa0MBJPMNirHL3PBbbLraKxaFdXgFusxxijPx6/gEEO+0cKc5QWt0UjHT8mc2VgO1oDsWk/HE+SqJeu6XCqulbLW187p6mZ2k97jtJXkQC3GSdpkvuUdttkYx5RO1rvczHFx8gVp1uMlL/VZM3ynu1CyJ80OIDZRi1wIwI/2g7GgjZDEyKMYMjaGtHYAMAsiqCw587XU6Md6t89G888kR1jP5Vi2TKmx31oNruVPOT7Afg4fQ7UHku/rCXw8AhJdyP6hL4f2hKg5uysy+ygylc+GtrHRUY2ClgOizAdv6vqopjsTpOkf8TxTEAhCEAnNTUrUGZi9DNhDmktI2gtOBCwMWdiixLrXfLvyCIG61xwxAxmPMCcELXWz8lH9eJSoqKydI/4nim4KSSU1PrH/AIEXOfYHak";
-	}
-    
-  </script>
-</head>
+      <header>
+        <h1>LLL</h1>
+        <p>Face memorization game</p>
+      </header>
 
-<body>
+      <div id="banner">
+        <span id="logo"></span>
 
- <div ng-controller="MainCtrl">
-   <input type="text" ng-model="spreadsheet">
-   <input type="submit" value="Fetch Spreadsheet Data" ng-click="get_data(spreadsheet)"><br>
-   <a target="_blank" href="https://spreadsheets.google.com/feeds/list/{{spreadsheet}}/od6/public/values?alt=json">Click to see the raw spreadsheet json data feed.</a><br>
-   Number of rows loaded : {{summary.data.feed.entry.length}}
-   <hr>
-   
-   <div>
-     <font ng-show="incorrect===true" color="red">Incorrect. Try again. </font> Can you find {{levels[gameLevel][correctOption].gsx$name.$t}}?
-     <table ng-show="correct==false && incorrect==false">
-       <tr>
-         <td><img width="80" ng-src="{{levels[gameLevel][options[0]].gsx$image.$t}}" ng-click="image_click(options[0])"></td>
-         <td><img width="80" ng-src="{{levels[gameLevel][options[1]].gsx$image.$t}}" ng-click="image_click(options[1])"></td>
-         <td><img width="80" ng-src="{{levels[gameLevel][options[2]].gsx$image.$t}}" ng-click="image_click(options[2])"></td>
-       </tr>
-       <tr>
-         <td><img width="80" ng-src="{{levels[gameLevel][options[3]].gsx$image.$t}}" ng-click="image_click(options[3])"></td>
-         <td><img width="80" ng-src="{{levels[gameLevel][options[4]].gsx$image.$t}}" ng-click="image_click(options[4])"></td>
-         <td><img width="80" ng-src="{{levels[gameLevel][options[5]].gsx$image.$t}}" ng-click="image_click(options[5])"></td>
-       </tr>
-     </table>
+        <a href="https://github.com/ymssn/faces" class="button fork"><strong>View On GitHub</strong></a>
+        <div class="downloads">
+          <span>Downloads:</span>
+          <ul>
+            <li><a href="https://github.com/ymssn/faces/zipball/master" class="button">ZIP</a></li>
+            <li><a href="https://github.com/ymssn/faces/tarball/master" class="button">TAR</a></li>
+          </ul>
+        </div>
+      </div><!-- end banner -->
+
+    <div class="wrapper">
+      <nav>
+        <ul></ul>
+      </nav>
+      <section>
+        <h3>
+<a name="welcome-to-github-pages" class="anchor" href="#welcome-to-github-pages"><span class="octicon octicon-link"></span></a>Welcome to GitHub Pages.</h3>
+
+<p>This automatic page generator is the easiest way to create beautiful pages for all of your projects. Author your page content here using GitHub Flavored Markdown, select a template crafted by a designer, and publish. After your page is generated, you can check out the new branch:</p>
+
+<pre><code>$ cd your_repo_root/repo_name
+$ git fetch origin
+$ git checkout gh-pages
+</code></pre>
+
+<p>If you're using the GitHub for Mac, simply sync your repository and you'll see the new branch.</p>
+
+<h3>
+<a name="designer-templates" class="anchor" href="#designer-templates"><span class="octicon octicon-link"></span></a>Designer Templates</h3>
+
+<p>We've crafted some handsome templates for you to use. Go ahead and continue to layouts to browse through them. You can easily go back to edit your page before publishing. After publishing your page, you can revisit the page generator and switch to another theme. Your Page content will be preserved if it remained markdown format.</p>
+
+<h3>
+<a name="rather-drive-stick" class="anchor" href="#rather-drive-stick"><span class="octicon octicon-link"></span></a>Rather Drive Stick?</h3>
+
+<p>If you prefer to not use the automatic generator, push a branch named <code>gh-pages</code> to your repository to create a page manually. In addition to supporting regular HTML content, GitHub Pages support Jekyll, a simple, blog aware static site generator written by our own Tom Preston-Werner. Jekyll makes it easy to create site-wide headers and footers without having to copy them across every page. It also offers intelligent blog support and other advanced templating features.</p>
+
+<h3>
+<a name="authors-and-contributors" class="anchor" href="#authors-and-contributors"><span class="octicon octicon-link"></span></a>Authors and Contributors</h3>
+
+<p>You can <a href="https://github.com/blog/821" class="user-mention">@mention</a> a GitHub username to generate a link to their profile. The resulting <code>&lt;a&gt;</code> element will link to the contributor's GitHub Profile. For example: In 2007, Chris Wanstrath (<a href="https://github.com/defunkt" class="user-mention">@defunkt</a>), PJ Hyett (<a href="https://github.com/pjhyett" class="user-mention">@pjhyett</a>), and Tom Preston-Werner (<a href="https://github.com/mojombo" class="user-mention">@mojombo</a>) founded GitHub.</p>
+
+<h3>
+<a name="support-or-contact" class="anchor" href="#support-or-contact"><span class="octicon octicon-link"></span></a>Support or Contact</h3>
+
+<p>Having trouble with Pages? Check out the documentation at <a href="http://help.github.com/pages">http://help.github.com/pages</a> or contact <a href="mailto:support@github.com">support@github.com</a> and we’ll help you sort it out.</p>
+      </section>
+      <footer>
+        <p>Project maintained by <a href="https://github.com/ymssn">ymssn</a></p>
+        <p><small>Hosted on GitHub Pages &mdash; Theme by <a href="https://twitter.com/michigangraham">mattgraham</a></small></p>
+      </footer>
+    </div>
+    <!--[if !IE]><script>fixScale(document);</script><![endif]-->
     
-     <table ng-show="incorrect==true">
-       <tr>
-         <td ng-if="options[0] == correctOption"><img width="80" ng-src="{{levels[gameLevel][options[0]].gsx$image.$t}}" ng-click="image_click(options[0])"></td>
-         <td ng-if="options[0] != correctOption"><img width="80" ng-src="{{wrongPerson}}" ng-click="image_click(options[0])"></td>
-         <td ng-if="options[1] == correctOption"><img width="80" ng-src="{{levels[gameLevel][options[1]].gsx$image.$t}}" ng-click="image_click(options[1])"></td>
-         <td ng-if="options[1] != correctOption"><img width="80" ng-src="{{wrongPerson}}" ng-click="image_click(options[1])"></td>
-         <td ng-if="options[2] == correctOption"><img width="80" ng-src="{{levels[gameLevel][options[2]].gsx$image.$t}}" ng-click="image_click(options[2])"></td>
-         <td ng-if="options[2] != correctOption"><img width="80" ng-src="{{wrongPerson}}" ng-click="image_click(options[2])"></td>
-    
-       </tr>
-       <tr>
-         <td ng-if="options[3] == correctOption"><img width="80" ng-src="{{levels[gameLevel][options[3]].gsx$image.$t}}" ng-click="image_click(options[3])"></td>
-         <td ng-if="options[3] != correctOption"><img width="80" ng-src="{{wrongPerson}}" ng-click="image_click(options[3])"></td>
-         <td ng-if="options[4] == correctOption"><img width="80" ng-src="{{levels[gameLevel][options[4]].gsx$image.$t}}" ng-click="image_click(options[4])"></td>
-         <td ng-if="options[4] != correctOption"><img width="80" ng-src="{{wrongPerson}}" ng-click="image_click(options[4])"></td>
-         <td ng-if="options[5] == correctOption"><img width="80" ng-src="{{levels[gameLevel][options[5]].gsx$image.$t}}" ng-click="image_click(options[5])"></td>
-         <td ng-if="options[5] != correctOption"><img width="80" ng-src="{{wrongPerson}}" ng-click="image_click(options[5])"></td>
-    
-       </tr>
-     </table>
-     </div>
-   
-	   <br>
-	   People to learn ({{levels[0].length}})
-	   <table>
-	     <tr>
-	       <td ng-repeat="row in levels[0]">
-	         <img width="20" ng-src="{{row.gsx$image.$t}}">
-	       </td>
-	     </tr>
-	   </table>
-	  
-	  People you know ({{levels[1].length}})
-	   <table>
-	     <tr>
-	       <td ng-repeat="row in levels[1]">
-	         <img width="20" ng-src="{{row.gsx$image.$t}}">
-	       </td>
-	     </tr>
-	   </table>
-	  People you know well ({{levels[2].length}})
-	   <table>
-	     <tr>
-	       <td ng-repeat="row in levels[2]">
-	         <img width="20" ng-src="{{row.gsx$image.$t}}">
-	       </td>
-	     </tr>
-	   </table>
-	   
-	   People you know very well ({{levels[3].length}})
-	   <table>
-	     <tr>
-	       <td ng-repeat="row in levels[3]">
-	         <img width="20" ng-src="{{row.gsx$image.$t}}">
-	       </td>
-	     </tr>
-	   </table>
-   </div>
   </body>
 </html>
